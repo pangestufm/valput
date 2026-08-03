@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cepat Cek Caput (C3) - V11 (Myintress Fix)</title>
+    <title>Cepat Cek Caput (C3) - V12 (Smart Anomaly Fix)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -353,19 +353,22 @@
                     let paguFormatted = formatRupiah(paguAsli);
                     let realisasiAsli = parseFloat(row[10]) || 0;
 
-                    // FITUR BARU: Deteksi Anomali Kolom L (% Realisasi)
-                    let L_raw = parseFloat(row[11]);
-                    let L = 0;
+                    // FITUR BARU: Deteksi Anomali Cerdas Kolom L (% Realisasi)
+                    // Hapus karakter tanda kutip (') dan ubah koma (,) menjadi titik (.) agar dikenali mesin
+                    let L_raw_str = row[11] !== undefined ? row[11].toString().replace(/'/g, '').replace(/,/g, '.') : "";
+                    let L_raw = parseFloat(L_raw_str);
                     
-                    // Jika L gagal di-parse (karena tanda kutip) ATAU angkanya error lebih dari 1000%
-                    if (isNaN(L_raw) || L_raw > 1000) {
-                        if (paguAsli > 0) {
-                            L = (realisasiAsli / paguAsli) * 100;
-                        }
+                    // Hitung manual: (Realisasi / Pagu) * 100
+                    let L_calc = (paguAsli > 0) ? (realisasiAsli / paguAsli) * 100 : 0;
+                    
+                    let L = 0;
+                    // Cek Anomali: Jika L_raw bukan angka, atau selisihnya dengan L_calc lebih dari 0.5% (karena hilang koma/error)
+                    if (isNaN(L_raw) || Math.abs(L_raw - L_calc) > 0.5) {
+                        L = L_calc; // Hitung manual
                     } else {
-                        L = L_raw;
+                        L = L_raw;  // Ambil nilai asli excel
                     }
-                    L = parseFloat(L.toFixed(2));
+                    L = parseFloat(L.toFixed(2)); // Bulatkan hasil akhirnya
 
                     let M = parseFloat(row[12]) || 0;
                     let Q = parseFloat((parseFloat(row[16]) || 0).toFixed(2));
@@ -428,7 +431,7 @@
                                       <span class="reason-text">${reasons.join('<br>• ')}</span>`;
                         errors++;
                         
-                        // Simpan error ke array Satker
+                        // Simpan error ke array Satker, DITAMBAHKAN PAGU DAN SARAN GABUNGAN
                         if (!satkerErrors[kodeSatker]) satkerErrors[kodeSatker] = { name: namaSatker, list: [] };
                         satkerErrors[kodeSatker].list.push({ 
                             ro: kro_ro, 
@@ -474,7 +477,7 @@
                 const data = satkerErrors[kode];
                 const textId = `recap-text-${index}`;
                 
-                // Format Pesan diubah, Pagu dimasukkan
+                // Format Pesan diubah untuk menyesuaikan gabungan saran
                 let messageRows = data.list.map((item, idx) => `${idx + 1}. ${item.ro} (Pagu: ${item.pagu}), ${item.saran}`).join('\n');
                 
                 let fullMessage = `Yth. Bapak/Ibu Satuan Kerja ${kode} (${data.name}), berikut kami sampaikan RO yang masih perlu diperbaiki:\n\n${messageRows}\n\ndemikian disampaikan, jika terdapat kendala dalam pengisian silahkan menghubungi CSO KPPN melalui kanal yang tersedia.\n\nTerima kasih`;
