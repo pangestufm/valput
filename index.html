@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cepat Cek Caput (C3) - V10   </title>
+    <title>Cepat Cek Caput (C3) - V11 (Myintress Fix)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -164,7 +164,6 @@
         .badge-success { background-color: var(--success-bg); color: var(--success-text); border: 1px solid rgba(22, 163, 74, 0.2); }
         .badge-error { background-color: var(--error-bg); color: var(--error-text); border: 1px solid rgba(220, 38, 38, 0.2); }
         .reason-text { font-size: 12px; color: var(--text-muted); margin-top: 8px; display: block; line-height: 1.5; }
-        tbody tr:hover { background: #646c692c; transform: translateY(-2px); }
         
         .saran-pill {
             background-color: var(--bg-color); padding: 8px 15px; border-radius: 8px;
@@ -191,15 +190,15 @@
         }
         /* --- FOOTER STYLE --- */
         .footer-text {
-        text-align: center;
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-        color: var(--text-muted);
-        font-size: 14px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-}
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -349,18 +348,35 @@
                     let namaSatker = row[2] || "-";
                     let kro_ro = row[7] || "-";
                     
-                    // Ambil Pagu dari Kolom J (Index 9)
+                    // Ambil Pagu dan Realisasi
                     let paguAsli = parseFloat(row[9]) || 0;
                     let paguFormatted = formatRupiah(paguAsli);
+                    let realisasiAsli = parseFloat(row[10]) || 0;
 
-                    let L = parseFloat((parseFloat(row[11]) || 0).toFixed(2));
+                    // FITUR BARU: Deteksi Anomali Kolom L (% Realisasi)
+                    let L_raw = parseFloat(row[11]);
+                    let L = 0;
+                    
+                    // Jika L gagal di-parse (karena tanda kutip) ATAU angkanya error lebih dari 1000%
+                    if (isNaN(L_raw) || L_raw > 1000) {
+                        if (paguAsli > 0) {
+                            L = (realisasiAsli / paguAsli) * 100;
+                        }
+                    } else {
+                        L = L_raw;
+                    }
+                    L = parseFloat(L.toFixed(2));
+
                     let M = parseFloat(row[12]) || 0;
                     let Q = parseFloat((parseFloat(row[16]) || 0).toFixed(2));
                     let R = parseFloat(row[17]) || 0;
                     let S = parseFloat((parseFloat(row[18]) || 0).toFixed(2));
                     let T = parseFloat((parseFloat(row[19]) || 0).toFixed(2));
+                    
+                    // Ambil Kode Keterangan (Kolom V = Index 21)
+                    let kodeKet = row[21] !== undefined ? row[21].toString().trim() : "";
 
-                    let reasons = []; let isError = false;
+                    let reasons = []; let isError = false; let isPcroError = false;
 
                     let base_target = Math.max(L, S);
                     // Logika 0.01%
@@ -369,27 +385,56 @@
                     if (T < final_threshold) {
                         reasons.push(`PCRO bulan ini (${T.toFixed(2)}%) belum mencapai Target (${final_threshold.toFixed(2)}%)`);
                         isError = true;
+                        isPcroError = true;
                     }
 
                     if (R === M && T < 100) {
                         reasons.push(`RVRO s.d bulan ini sudah sama dengan Target. PCRO wajib 100%.`);
                         isError = true;
+                        isPcroError = true;
                         final_threshold = Math.max(final_threshold, 100);
                     }
+                    
+                    // Cek Kode Keterangan 99
+                    if (kodeKet === "99") {
+                        reasons.push(`Kode Keterangan terisi 99 (Harus Pilih Kode Lain)`);
+                        isError = true;
+                    }
 
-                    let saranVal = isError ? Math.max(final_threshold - (T - Q), 0).toFixed(2) : "-";
                     let saranHtml = `<span style="color: var(--text-muted)">-</span>`;
                     let statusHTML = "";
 
                     if (isError) {
-                        saranHtml = `<div class="saran-pill">${saranVal}%</div>`;
+                        let saranList = [];
+                        let teksRekapSaran = [];
+                        
+                        // Hitung Rekomendasi Jika PCRO Bermasalah
+                        if (isPcroError) {
+                            let q_seharusnya = Math.max(final_threshold - (T - Q), 0).toFixed(2);
+                            saranList.push(`Isi PCRO min: ${q_seharusnya}%`);
+                            teksRekapSaran.push(`isi PCRO Bulan ini: ${q_seharusnya}%`);
+                        }
+                        
+                        // Hitung Rekomendasi Jika Kode 99 Bermasalah
+                        if (kodeKet === "99") {
+                            saranList.push(`Ganti Kode Ket. selain 99`);
+                            teksRekapSaran.push(`isi keterangan selain kode 99`);
+                        }
+                        
+                        // Buat Tampilan Label (Pill) bersusun untuk kolom Rekomendasi
+                        saranHtml = saranList.map(s => `<div class="saran-pill" style="margin-bottom:4px; font-size:13px;">${s}</div>`).join('');
+                        
                         statusHTML = `<div class="badge badge-error"><i class="fas fa-times-circle"></i> Perbaikan</div>
                                       <span class="reason-text">${reasons.join('<br>• ')}</span>`;
                         errors++;
                         
-                        // Simpan error ke array Satker, DITAMBAHKAN PAGU
+                        // Simpan error ke array Satker
                         if (!satkerErrors[kodeSatker]) satkerErrors[kodeSatker] = { name: namaSatker, list: [] };
-                        satkerErrors[kodeSatker].list.push({ ro: kro_ro, pagu: paguFormatted, saran: saranVal });
+                        satkerErrors[kodeSatker].list.push({ 
+                            ro: kro_ro, 
+                            pagu: paguFormatted, 
+                            saran: teksRekapSaran.join(" dan ") 
+                        });
                     } else {
                         statusHTML = `<div class="badge badge-success"><i class="fas fa-check-circle"></i> Valid</div>`;
                         valids++;
@@ -430,7 +475,7 @@
                 const textId = `recap-text-${index}`;
                 
                 // Format Pesan diubah, Pagu dimasukkan
-                let messageRows = data.list.map((item, idx) => `${idx + 1}. ${item.ro} (Pagu: ${item.pagu}), isi PCRO Bulan ini: ${item.saran}%`).join('\n');
+                let messageRows = data.list.map((item, idx) => `${idx + 1}. ${item.ro} (Pagu: ${item.pagu}), ${item.saran}`).join('\n');
                 
                 let fullMessage = `Yth. Bapak/Ibu Satuan Kerja ${kode} (${data.name}), berikut kami sampaikan RO yang masih perlu diperbaiki:\n\n${messageRows}\n\ndemikian disampaikan, jika terdapat kendala dalam pengisian silahkan menghubungi CSO KPPN melalui kanal yang tersedia.\n\nTerima kasih`;
 
