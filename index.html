@@ -226,7 +226,7 @@
         </div>
         <span id="fileNameDisplay">Belum ada file yang dipilih...</span>
         <button class="btn-process" id="processButton" onclick="startProcessing()"><i class="fas fa-magnifying-glass"></i> Validasi Sekarang</button>
-        <p class="upload-note" id="excelUploadNote">File yang diunggah wajib Excel (.xlsx atau .xls), diambil dari rekap kertas kerja capaian output.</p>
+        <p class="upload-note" id="excelUploadNote">File yang diunggah wajib Excel (.xlsx atau .xls), diambil dari detail kertas kerja capaian output.</p>
     </div>
     <div class="upload-notification" id="uploadNotification" role="alert" hidden></div>
 
@@ -276,7 +276,7 @@
 </div>
 
 <script>
-    const FORMAT_ERROR = 'format salah, pastikan file excel diambil dari rekap kertas kerja capaian output';
+    const FORMAT_ERROR = 'format salah, pastikan file excel diambil dari detail kertas kerja capaian output';
     let validationResults = [];
     let validatedFileName = '';
     let processingVersion = 0;
