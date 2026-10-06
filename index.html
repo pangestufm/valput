@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cepat Cek Caput (C3) - V12 (Smart Anomaly Fix)</title>
+    <title>Cepat Cek Caput (C3) - V13</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -101,6 +101,14 @@
             box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39); transition: var(--transition); flex-grow: 1;
         }
         .btn-process:hover { background-color: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5); }
+        button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        button:focus-visible, .file-upload-wrapper:focus-within { outline: 3px solid var(--primary-color); outline-offset: 3px; }
+        .upload-note { flex-basis: 100%; margin: 0; font-size: 13px; color: var(--text-color); }
+        #fileNameDisplay { overflow-wrap: anywhere; min-width: 0; }
+        .upload-notification { margin: -15px 0 25px; padding: 14px 18px; border: 1px solid var(--error-text); border-radius: 8px; background: var(--error-bg); color: var(--error-text); }
+        .result-actions { display: flex; justify-content: flex-end; margin-bottom: 15px; }
+        .result-actions .btn-process { flex-grow: 0; }
+        [hidden] { display: none !important; }
 
         /* --- DASHBOARD CARDS --- */
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; display: none; }
@@ -213,12 +221,14 @@
 
     <div class="upload-section">
         <div class="file-upload-wrapper">
-            <button class="btn-upload"><i class="fas fa-paperclip"></i> Pilih File</button>
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onchange="updateFileName(this)">
+            <label class="btn-upload" for="excelFileInput"><i class="fas fa-paperclip" aria-hidden="true"></i> Pilih File Excel</label>
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls" aria-label="Pilih file Excel kertas kerja capaian output" aria-describedby="excelUploadNote" onchange="updateFileName(this)">
         </div>
         <span id="fileNameDisplay">Belum ada file yang dipilih...</span>
-        <button class="btn-process" onclick="startProcessing()"><i class="fas fa-magnifying-glass"></i> Validasi Sekarang</button>
+        <button class="btn-process" id="processButton" onclick="startProcessing()"><i class="fas fa-magnifying-glass"></i> Validasi Sekarang</button>
+        <p class="upload-note" id="excelUploadNote">File yang diunggah wajib Excel (.xlsx atau .xls), diambil dari rekap kertas kerja capaian output.</p>
     </div>
+    <div class="upload-notification" id="uploadNotification" role="alert" hidden></div>
 
     <div id="loading">
         <i class="fas fa-circle-notch spinner"></i>
@@ -254,6 +264,9 @@
         <div id="recap-list"></div>
     </div>
 
+    <div class="result-actions" id="exportActions" hidden>
+        <button class="btn-process" id="exportButton" onclick="exportValidation()" disabled><i class="fas fa-file-excel" aria-hidden="true"></i> Export Hasil ke Excel</button>
+    </div>
     <div class="table-wrapper" id="result-container">
         <div id="result"></div>
     </div>
@@ -263,6 +276,105 @@
 </div>
 
 <script>
+    const FORMAT_ERROR = 'format salah, pastikan file excel diambil dari rekap kertas kerja capaian output';
+    let validationResults = [];
+    let validatedFileName = '';
+    let processingVersion = 0;
+
+    function showNotification(message) {
+        const notification = document.getElementById('uploadNotification');
+        notification.textContent = message;
+        notification.hidden = !message;
+    }
+
+    function clearResults() {
+        validationResults = [];
+        validatedFileName = '';
+        ['summaryGrid', 'recap-section', 'result-container', 'loading'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+        document.getElementById('result').innerHTML = '';
+        document.getElementById('recap-list').innerHTML = '';
+        document.getElementById('exportActions').hidden = true;
+        document.getElementById('exportButton').disabled = true;
+        document.getElementById('processButton').disabled = false;
+    }
+
+    function parseExcelNumber(value) {
+        if (typeof value === 'number') return Number.isFinite(value) ? value : NaN;
+        if (typeof value !== 'string') return NaN;
+        let text = value.trim().replace(/^'+/, '').replace(/\s/g, '').replace(/%$/, '');
+        if (!text) return NaN;
+        if (text.includes(',') && text.includes('.')) {
+            text = text.lastIndexOf(',') > text.lastIndexOf('.')
+                ? text.replace(/\./g, '').replace(',', '.')
+                : text.replace(/,/g, '');
+        } else if (text.includes(',')) {
+            text = text.replace(',', '.');
+        } else if (/^[+-]?\d{1,3}(?:\.\d{3}){2,}$/.test(text)) {
+            text = text.replace(/\./g, '');
+        }
+        return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text) ? Number(text) : NaN;
+    }
+
+    function resolveRealisasi(raw, pagu, realisasi) {
+        const value = parseExcelNumber(raw);
+        const valid = Number.isFinite(value) && value >= 0 && value <= 100;
+        const manual = pagu > 0 && Number.isFinite(pagu) && Number.isFinite(realisasi)
+            ? (realisasi / pagu) * 100 : NaN;
+        if (!Number.isFinite(manual)) return { value: valid ? value : 0, source: valid ? 'Excel' : 'Tidak tersedia' };
+        // Toleransi tambahan hanya menampung galat floating point pada batas 0,01.
+        if (valid && Math.abs(value - manual) <= 0.01 + 1e-10) return { value, source: 'Excel' };
+        return { value: manual, source: 'Hitung manual' };
+    }
+
+    function isExcelFile(bytes, name) {
+        if (!/\.(xlsx|xls)$/i.test(name)) return false;
+        const zip = [0x50, 0x4b, 0x03, 0x04];
+        const ole = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+        return [zip, ole].some(signature => signature.every((byte, i) => bytes[i] === byte));
+    }
+
+    function validateWorksheetRows(rows) {
+        const normalize = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9%]/g, '');
+        const headerIndex = rows.findIndex(row => normalize(row[0]) === 'no'
+            && normalize(row[1]) === 'kodesatker' && normalize(row[2]) === 'namasatker'
+            && normalize(row[7]) === 'kroro' && ['kodeket', 'kodeketerangan'].includes(normalize(row[21])));
+        if (headerIndex < 0) throw new Error(FORMAT_ERROR);
+        const header = rows.slice(headerIndex, headerIndex + 3);
+        const matches = (column, labels) => header.some(row => labels.includes(normalize(row[column])));
+        const expected = [
+            [9, ['pagu']], [10, ['realisasi']], [11, ['%', '%realisasi', 'realisasi%']],
+            [12, ['target']], [14, ['rvro']], [15, ['tpcro%']], [16, ['pcro%']],
+            [17, ['rvro']], [18, ['tpcro%']], [19, ['pcro%']]
+        ];
+        if (!expected.every(([column, labels]) => matches(column, labels))
+            || !matches(14, ['bulanini']) || !matches(17, ['sdbulanini', 'sampaibulanini'])) throw new Error(FORMAT_ERROR);
+        const dataRows = rows.slice(headerIndex + 3).filter(row => {
+            const no = parseExcelNumber(row[0]);
+            return Number.isInteger(no) && no > 0;
+        });
+        if (!dataRows.length) throw new Error('File Excel tidak memiliki baris data capaian output.');
+        const numericColumns = [9, 10, 12, 16, 17, 18, 19];
+        if (dataRows.some(row => [1, 2, 7].some(i => !String(row[i] ?? '').trim())
+            || numericColumns.some(i => !Number.isFinite(parseExcelNumber(row[i]))))) throw new Error(FORMAT_ERROR);
+        return dataRows;
+    }
+
+    function readValidationRows(bytes, name) {
+        if (!isExcelFile(bytes, name)) throw new Error(FORMAT_ERROR);
+        const workbook = XLSX.read(bytes, { type: 'array', cellNF: true });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        if (!worksheet || !worksheet['!ref']) throw new Error(FORMAT_ERROR);
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, range: 0 });
+        // Excel menyimpan 40% sebagai 0,4 jika sel memakai format persen.
+        rows.forEach((row, i) => {
+            const cell = worksheet[XLSX.utils.encode_cell({ r: i, c: 11 })];
+            if (cell && cell.t === 'n' && /%/.test(cell.z || '')) row[11] = cell.v * 100;
+        });
+        return validateWorksheetRows(rows);
+    }
+
     function toggleTheme() {
         const body = document.documentElement;
         const btn = document.getElementById('toggleThemeBtn');
@@ -282,9 +394,13 @@
     }
 
     function updateFileName(input) {
+        processingVersion++;
+        clearResults();
+        showNotification('');
         const display = document.getElementById('fileNameDisplay');
         if (input.files && input.files.length > 0) {
-            display.innerHTML = `<i class="fas fa-file-excel" style="color:var(--success-text);"></i> <b>${input.files[0].name}</b> siap divalidasi.`;
+            display.textContent = `${input.files[0].name} dipilih.`;
+            if (!/\.(xlsx|xls)$/i.test(input.files[0].name)) showNotification(FORMAT_ERROR);
         } else {
             display.innerText = 'Belum ada file yang dipilih...';
         }
@@ -301,24 +417,83 @@
         const fileInput = document.getElementById('excelFileInput');
         const file = fileInput.files[0];
         
-        if (!file) { alert('Silakan pilih file Excel/CSV terlebih dahulu!'); return; }
-
-        document.getElementById('summaryGrid').style.display = 'none';
-        document.getElementById('recap-section').style.display = 'none';
-        document.getElementById('result-container').style.display = 'none';
+        const version = ++processingVersion;
+        clearResults();
+        showNotification('');
+        if (!file) { showNotification('Silakan pilih file Excel (.xlsx atau .xls) terlebih dahulu!'); return; }
+        if (!/\.(xlsx|xls)$/i.test(file.name)) { showNotification(FORMAT_ERROR); return; }
+        if (typeof XLSX === 'undefined') { showNotification('Pembaca Excel belum tersedia. Periksa koneksi internet lalu muat ulang halaman.'); return; }
         document.getElementById('loading').style.display = 'block';
-
-        setTimeout(() => { 
+        document.getElementById('processButton').disabled = true;
+        const fail = message => {
+            if (version !== processingVersion) return;
+            clearResults();
+            showNotification(message);
+        };
+        try {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                renderTable(rows);
+                if (version !== processingVersion) return;
+                try {
+                    const rows = readValidationRows(new Uint8Array(e.target.result), file.name);
+                    renderTable(rows);
+                    validatedFileName = file.name;
+                } catch (error) {
+                    fail(error.message === 'File Excel tidak memiliki baris data capaian output.' ? error.message : FORMAT_ERROR);
+                }
             };
+            reader.onerror = () => fail(FORMAT_ERROR);
+            reader.onabort = () => fail('Pembacaan file Excel dibatalkan. Silakan pilih file kembali.');
             reader.readAsArrayBuffer(file);
-        }, 500);
+        } catch (error) {
+            fail(FORMAT_ERROR);
+        }
+    }
+
+    function createExportWorkbook(results, sourceName) {
+        const header = ['No', 'Kode Satker', 'Nama Satker', 'Periode', 'Program', 'Kegiatan', 'RO', 'Uraian RO',
+            'Pagu', 'Realisasi', 'Belanja (%)', 'Sumber Belanja (%)', 'Target', 'RVRO', 'TPCRO (%)', 'PCRO (%)',
+            'PCRO Bulan Ini (%)', 'Kode Ket', 'Status Validasi', 'Alasan', 'Saran PCRO Bulan Ini (%)', 'Rekomendasi'];
+        const data = results.map(row => [row.no, row.kodeSatker, row.namaSatker, row.periode, row.program, row.kegiatan,
+            row.ro, row.uraian, row.pagu, row.realisasi, row.belanja / 100, row.sumberBelanja, row.target, row.rvro,
+            row.tpcro / 100, row.pcro / 100, row.pcroBulanIni / 100, row.kodeKet, row.status,
+            row.alasan.join('; '), row.saranPcro === null ? null : row.saranPcro / 100, row.rekomendasi.join('; ')]);
+        const sheet = XLSX.utils.aoa_to_sheet([header, ...data]);
+        sheet['!cols'] = header.map((name, i) => ({ wch: [2, 7, 19, 21].includes(i) ? 55 : Math.max(name.length + 2, 16) }));
+        sheet['!autofilter'] = { ref: sheet['!ref'] };
+        data.forEach((row, r) => {
+            [10, 14, 15, 16, 20].forEach(c => {
+                const cell = sheet[XLSX.utils.encode_cell({ r: r + 1, c })];
+                if (cell) cell.z = '0.00%';
+            });
+            [8, 9].forEach(c => { sheet[XLSX.utils.encode_cell({ r: r + 1, c })].z = '#,##0'; });
+        });
+        const valid = results.filter(row => row.status === 'Valid').length;
+        const summary = XLSX.utils.aoa_to_sheet([
+            ['Ringkasan Validasi C3', 'Nilai'], ['File sumber', sourceName], ['Waktu ekspor', new Date().toLocaleString('id-ID')],
+            ['Total Data Diperiksa', results.length], ['Data Valid', valid], ['Perlu Perbaikan', results.length - valid],
+            ['Persentase hitung manual', results.filter(row => row.sumberBelanja === 'Hitung manual').length]
+        ]);
+        summary['!cols'] = [{ wch: 32 }, { wch: 65 }];
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, sheet, 'Hasil Validasi');
+        XLSX.utils.book_append_sheet(workbook, summary, 'Ringkasan');
+        return workbook;
+    }
+
+    function exportValidation() {
+        if (!validationResults.length) return;
+        try {
+            const workbook = createExportWorkbook(validationResults, validatedFileName);
+            const stem = validatedFileName.replace(/\.(xlsx|xls)$/i, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100);
+            XLSX.writeFile(workbook, `Hasil_Validasi_${stem || 'C3'}.xlsx`, { bookType: 'xlsx', compression: true });
+        } catch (error) {
+            showNotification('Hasil validasi gagal diekspor. Silakan coba kembali.');
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
     }
 
     // Fungsi Format Rupiah
@@ -327,6 +502,8 @@
     }
 
     function renderTable(rows) {
+        validationResults = [];
+        document.getElementById('recap-section').style.display = 'none';
         let tableHTML = `<table>
             <thead>
                 <tr>
@@ -338,7 +515,7 @@
             <tbody>`;
 
         let errors = 0; let valids = 0; let total = 0;
-        let satkerErrors = {};
+        let satkerErrors = Object.create(null);
 
         rows.forEach((row) => {
             if (row && row.length > 19) {
@@ -349,35 +526,20 @@
                     let kro_ro = row[7] || "-";
                     
                     // Ambil Pagu dan Realisasi
-                    let paguAsli = parseFloat(row[9]) || 0;
+                    let paguAsli = parseExcelNumber(row[9]) || 0;
                     let paguFormatted = formatRupiah(paguAsli);
-                    let realisasiAsli = parseFloat(row[10]) || 0;
+                    let realisasiAsli = parseExcelNumber(row[10]) || 0;
+                    const belanja = resolveRealisasi(row[11], paguAsli, realisasiAsli);
+                    let L = Number(belanja.value.toFixed(2));
 
-                    // FITUR BARU: Deteksi Anomali Cerdas Kolom L (% Realisasi)
-                    // Hapus karakter tanda kutip (') dan ubah koma (,) menjadi titik (.) agar dikenali mesin
-                    let L_raw_str = row[11] !== undefined ? row[11].toString().replace(/'/g, '').replace(/,/g, '.') : "";
-                    let L_raw = parseFloat(L_raw_str);
-                    
-                    // Hitung manual: (Realisasi / Pagu) * 100
-                    let L_calc = (paguAsli > 0) ? (realisasiAsli / paguAsli) * 100 : 0;
-                    
-                    let L = 0;
-                    // Cek Anomali: Jika L_raw bukan angka, atau selisihnya dengan L_calc lebih dari 0.5% (karena hilang koma/error)
-                    if (isNaN(L_raw) || Math.abs(L_raw - L_calc) > 0.5) {
-                        L = L_calc; // Hitung manual
-                    } else {
-                        L = L_raw;  // Ambil nilai asli excel
-                    }
-                    L = parseFloat(L.toFixed(2)); // Bulatkan hasil akhirnya
-
-                    let M = parseFloat(row[12]) || 0;
-                    let Q = parseFloat((parseFloat(row[16]) || 0).toFixed(2));
-                    let R = parseFloat(row[17]) || 0;
-                    let S = parseFloat((parseFloat(row[18]) || 0).toFixed(2));
-                    let T = parseFloat((parseFloat(row[19]) || 0).toFixed(2));
+                    let M = parseExcelNumber(row[12]) || 0;
+                    let Q = Number((parseExcelNumber(row[16]) || 0).toFixed(2));
+                    let R = parseExcelNumber(row[17]) || 0;
+                    let S = Number((parseExcelNumber(row[18]) || 0).toFixed(2));
+                    let T = Number((parseExcelNumber(row[19]) || 0).toFixed(2));
                     
                     // Ambil Kode Keterangan (Kolom V = Index 21)
-                    let kodeKet = row[21] !== undefined ? row[21].toString().trim() : "";
+                    let kodeKet = String(row[21] ?? '').trim();
 
                     let reasons = []; let isError = false; let isPcroError = false;
 
@@ -386,7 +548,7 @@
                     let final_threshold = (L === 0 || S === 0) ? Math.max(base_target, 0.01) : base_target;
 
                     if (T < final_threshold) {
-                        reasons.push(`PCRO bulan ini (${T.toFixed(2)}%) belum mencapai Target (${final_threshold.toFixed(2)}%)`);
+                        reasons.push(`PCRO s.d bulan ini (${T.toFixed(2)}%) belum mencapai Target (${final_threshold.toFixed(2)}%)`);
                         isError = true;
                         isPcroError = true;
                     }
@@ -406,14 +568,16 @@
 
                     let saranHtml = `<span style="color: var(--text-muted)">-</span>`;
                     let statusHTML = "";
+                    let saranPcro = null;
+                    let saranList = [];
 
                     if (isError) {
-                        let saranList = [];
                         let teksRekapSaran = [];
                         
                         // Hitung Rekomendasi Jika PCRO Bermasalah
                         if (isPcroError) {
                             let q_seharusnya = Math.max(final_threshold - (T - Q), 0).toFixed(2);
+                            saranPcro = Number(q_seharusnya);
                             saranList.push(`Isi PCRO min: ${q_seharusnya}%`);
                             teksRekapSaran.push(`isi PCRO Bulan ini: ${q_seharusnya}%`);
                         }
@@ -443,14 +607,21 @@
                         valids++;
                     }
                     total++;
+                    validationResults.push({
+                        no, kodeSatker, namaSatker, periode: String(row[4] ?? ''), program: String(row[5] ?? ''),
+                        kegiatan: String(row[6] ?? ''), ro: kro_ro, uraian: String(row[8] ?? ''),
+                        pagu: paguAsli, realisasi: realisasiAsli, belanja: L, sumberBelanja: belanja.source,
+                        target: M, rvro: R, tpcro: S, pcro: T, pcroBulanIni: Q, kodeKet,
+                        status: isError ? 'Perbaikan' : 'Valid', alasan: reasons, saranPcro, rekomendasi: saranList
+                    });
 
                     tableHTML += `<tr style="${isError ? 'background-color: var(--error-bg);' : ''}">
                         <td><b>${no}</b></td>
                         <td style="min-width:220px; line-height:1.4;">
-                            <span style="font-size:11px; color:var(--text-muted);">${kodeSatker}</span><br>
-                            <b>${namaSatker}</b>
+                            <span style="font-size:11px; color:var(--text-muted);">${escapeHtml(kodeSatker)}</span><br>
+                            <b>${escapeHtml(namaSatker)}</b>
                         </td>
-                        <td style="font-weight:600; color:var(--primary-color)">${kro_ro}</td>
+                        <td style="font-weight:600; color:var(--primary-color)">${escapeHtml(kro_ro)}</td>
                         <td style="font-size: 13px; font-family: monospace; white-space: nowrap;">${paguFormatted}</td>
                         <td>${M}</td>
                         <td>${L.toFixed(2)}%</td>
@@ -485,10 +656,10 @@
                 recapList.innerHTML += `
                     <div class="recap-card">
                         <div class="recap-header">
-                            <p class="recap-title"><i class="fas fa-building"></i> Satker ${kode}</p>
+                            <p class="recap-title"><i class="fas fa-building"></i> Satker ${escapeHtml(kode)}</p>
                             <button class="btn-copy" onclick="copyToClipboard('${textId}')"><i class="fas fa-copy"></i> Salin Pesan</button>
                         </div>
-                        <div class="recap-text-box" id="${textId}">${fullMessage}</div>
+                        <div class="recap-text-box" id="${textId}">${escapeHtml(fullMessage)}</div>
                     </div>
                 `;
             });
@@ -502,6 +673,9 @@
         document.getElementById('summaryGrid').style.display = 'grid';
         document.getElementById('result-container').style.display = 'block';
         document.getElementById('result').innerHTML = tableHTML;
+        document.getElementById('processButton').disabled = false;
+        document.getElementById('exportActions').hidden = !validationResults.length;
+        document.getElementById('exportButton').disabled = !validationResults.length;
     }
 </script>
 </body>
