@@ -122,12 +122,13 @@
         .hero.is-still .hero-pause { display: none; }
 
         .hero-figure {
-            position: absolute; z-index: 1; bottom: 0; left: max(8px, calc((100vw - 1450px) / 2));
+            position: absolute; z-index: 1; bottom: 0; left: max(112px, calc((100vw - 1450px) / 2 + 112px));
             width: min(56vw, 64vh * 1.32, 780px);
         }
         .hero-poke { display: block; width: 100%; padding: 0; border: 0; background: transparent; border-radius: 24px 24px 0 0; }
         .hero-poke:focus-visible { outline-offset: -6px; }
-        .chicken { display: block; width: 100%; height: auto; overflow: hidden; }
+        /* overflow terlihat supaya sayap kiri yang terangkat tidak terpotong kotak SVG; bagian bawah badan tetap terpotong oleh hero. */
+        .chicken { display: block; width: 100%; height: auto; overflow: visible; }
         .chicken * { transform-box: fill-box; }
         .ck-line { fill: none; stroke: var(--ck-line); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
         .ck-root { transform-origin: 50% 100%; }
@@ -136,6 +137,11 @@
         .ck-eye { transform-origin: 50% 50%; animation: ck-blink 4.4s infinite; }
         .ck-eye + .ck-eye { animation-delay: 0.04s; }
         .ck-wing { transform-origin: 2% 82%; transform: rotate(92deg); }
+        .ck-wing-l { transform-origin: 98% 82%; transform: rotate(-92deg); }
+        /* Ikut scroll: --scroll-p (0 di atas, 1 saat hero hampir lewat) memiringkan badan dan membesarkan tatapan. */
+        .ck-scroll { transform-origin: 50% 85%; transform: rotate(calc(var(--scroll-p, 0) * 15deg)); }
+        .ck-gaze { transform-origin: 50% 50%; transform: scale(calc(1 + var(--scroll-p, 0) * 0.2)); }
+        .ck-eyes { transform-origin: 50% 50%; }
         .ck-jaw { transform-origin: 50% 0; }
         .ck-mouth { transform-origin: 50% 0; transform: scaleY(0.15); }
         .hero.is-still .ck-wing { transform: rotate(0deg); }
@@ -346,11 +352,11 @@
         }
 
         @media (max-width: 600px) {
-            /* HP: ayam diperbesar dan digeser ke kiri sampai sebagian badan keluar layar, seperti di sketsa.
+            /* HP: ayam diperbesar dan sedikit keluar layar kiri seperti di sketsa, tapi kedua sayap tetap terlihat.
                Sudut kanan bawah dipakai sayap, jadi petunjuk scroll naik ke pita kosong di atas kepala ayam. */
-            .hero { padding: 32px 16px 0; --fig-w: min(132vw, 58svh * 1.32); }
+            .hero { padding: 32px 16px 0; --fig-w: min(110vw, 58svh * 1.32); }
             .hero h1 { font-size: min(16vw, 76px); }
-            .hero-figure { width: var(--fig-w); left: -28vw; }
+            .hero-figure { width: var(--fig-w); left: -5vw; }
             .hero-bubble { left: auto; right: 6%; bottom: 52%; font-size: 16px; padding: 10px 16px; border-width: 2.5px; max-width: min(240px, 58vw); }
             .hero-hint { right: 8px; bottom: calc(var(--fig-w) * 0.757 * 0.8 + 16px); padding: 8px; gap: 8px; max-width: 200px; }
             .hero-hint-text span { font-size: 13px; }
@@ -390,6 +396,7 @@
         <button class="hero-poke" id="caputPoke" type="button" aria-label="Sapa ayam Caput">
             <svg class="chicken" viewBox="0 0 740 560" aria-hidden="true">
                 <g class="ck-root">
+                    <g class="ck-scroll">
                     <g class="ck-breathe">
                         <path class="ck-comb" d="M252 216 C230 178 252 140 282 160 C282 118 326 108 338 150 C358 120 396 138 384 180 C398 194 388 214 366 216 Z" fill="var(--ck-comb)" stroke="var(--ck-line)" stroke-width="7" stroke-linejoin="round"/>
                         <path d="M64 600 C58 372 150 196 306 192 C462 188 556 352 552 600 Z" fill="var(--ck-white)"/>
@@ -397,9 +404,11 @@
                         <path class="ck-line" d="M64 600 C58 372 150 196 306 192 C462 188 556 352 552 600"/>
                         <ellipse cx="212" cy="374" rx="24" ry="13" fill="var(--ck-cheek)"/>
                         <ellipse cx="402" cy="374" rx="24" ry="13" fill="var(--ck-cheek)"/>
+                        <g class="ck-gaze">
                         <g class="ck-eyes">
                             <g class="ck-eye"><ellipse cx="248" cy="318" rx="15" ry="26" fill="var(--ck-line)"/><circle cx="253" cy="308" r="5" fill="#fff"/></g>
                             <g class="ck-eye"><ellipse cx="366" cy="318" rx="15" ry="26" fill="var(--ck-line)"/><circle cx="371" cy="308" r="5" fill="#fff"/></g>
+                        </g>
                         </g>
                         <ellipse class="ck-mouth" cx="307" cy="372" rx="20" ry="13" fill="#7a1f1a"/>
                         <g class="ck-jaw">
@@ -409,6 +418,8 @@
                         <path d="M274 364 Q307 334 340 364 Q307 378 274 364 Z" fill="var(--ck-beak)" stroke="var(--ck-line)" stroke-width="5" stroke-linejoin="round"/>
                     </g>
                     <path class="ck-wing" d="M538 446 C548 392 600 344 668 338 C708 334 726 360 702 380 C718 386 712 412 684 414 C694 428 676 446 646 442 C610 452 572 456 538 446 Z" fill="var(--ck-white)" stroke="var(--ck-line)" stroke-width="7" stroke-linejoin="round"/>
+                    <path class="ck-wing-l" d="M78 446 C68 392 16 344 -52 338 C-92 334 -110 360 -86 380 C-102 386 -96 412 -68 414 C-78 428 -60 446 -30 442 C6 452 44 456 78 446 Z" fill="var(--ck-white)" stroke="var(--ck-line)" stroke-width="7" stroke-linejoin="round"/>
+                    </g>
                 </g>
             </svg>
         </button>

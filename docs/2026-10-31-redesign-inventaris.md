@@ -65,3 +65,13 @@ Permintaan Ando: tanpa 3D, karakter ayam putih berjambul merah, komposisi mengik
 - Verifikasi ulang: paritas 21 observasi tetap 0 perbedaan, tes Node 12/2 sama dengan baseline, hash script
   aplikasi tetap, Tab/Enter/Space, "Jeda gerak" menghentikan 14 animasi, animasi berhenti saat hero di luar
   layar, `prefers-reduced-motion` menampilkan ayam diam dengan sayap terangkat, tanpa long task.
+
+## Tambahan 31 Okt 2026: aksi idle acak, miring ikut scroll, sayap kiri
+
+- Idle: 8 aksi pendek (celingak, matuk, kepak, lompat, jambul, menguap, lirik ke scroll, kedip ganda), dipilih acak tanpa
+  pengulangan berturut-turut, jeda acak 2-6 detik setelah gerak terakhir selesai. Berhenti saat menyapa, saat dijeda,
+  saat hero kurang dari 55% terlihat, dan saat tab tersembunyi. Tidak berjalan dengan `prefers-reduced-motion`.
+- Ikut scroll: variabel CSS `--scroll-p` (0 sampai 1) memiringkan badan sampai 15 derajat dan membesarkan mata sampai 20%.
+- Sayap kiri: cermin sayap kanan, ikut di sapaan, kaget, kepak, lompat, dan menguap.
+- Verifikasi: paritas 21 observasi tetap 0 perbedaan, tes Node 12/2, hash script aplikasi tetap, jeda mem-pause 15 animasi,
+  tanpa long task, idle 45 detik tanpa pengulangan berturut-turut.
