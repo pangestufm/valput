@@ -26,7 +26,7 @@ Aturan redesign: tampilan boleh diganti total, fungsi hanya boleh bertambah.
 ## Batas teknis yang ditemukan
 
 - `tests/app.test.cjs` menjalankan **semua** tag `<script>` inline di `index.html` dalam VM tanpa DOM sungguhan.
-  Kode hero 3D wajib berada di file terpisah (`assets/hero.js`) supaya tes tetap menguji kode aplikasi saja.
+  Kode hero wajib berada di file terpisah (`assets/hero.js`) supaya tes tetap menguji kode aplikasi saja.
 - Variabel CSS `--error-bg`, `--text-muted`, `--primary-color` dipakai oleh HTML yang dibangun JavaScript
   (style inline). Namanya dipertahankan, hanya nilainya yang berubah.
 - Blok `<script>` aplikasi tidak diubah satu karakter pun. Dibuktikan dengan hash SHA-256 sebelum dan sesudah.
@@ -49,6 +49,19 @@ Redesign tidak memperbaikinya (di luar lingkup, keputusan teks ada di tangan pem
   (kecuali "Waktu ekspor"), notifikasi CSV, tema + `localStorage` + muat ulang, reset hasil saat pilih file baru.
 - Tambahan yang diuji: urutan Tab (lompat ke aplikasi, Mulai validasi, Jeda gerak, Sapa Caput, petunjuk scroll,
   lalu kontrol aplikasi seperti sebelumnya), fokus terlihat pada semua kontrol, Enter/Space bekerja,
-  render 3D berhenti saat dijeda dan saat hero di luar layar (0 frame/detik), `prefers-reduced-motion`
-  memakai gambar diam tanpa mengunduh three.js, tanpa overflow horizontal di 1440/768/390 px.
+  tanpa overflow horizontal di 1440/768/390 px.
 - Kontras WCAG semua pasangan warna teks terang dan gelap: terendah 5,36:1 (AA).
+
+## Revisi 31 Okt 2026: hero 3D diganti motion graphic 2D
+
+Permintaan Ando: tanpa 3D, karakter ayam putih berjambul merah, komposisi mengikuti sketsa
+(judul kiri atas, ayam menyembul dari kiri bawah sambil melambai, balon "Hai", petunjuk scroll kanan bawah).
+
+- Ayam digambar sebagai SVG inline di `index.html`; gerak sekali jalan (muncul, melambai, bicara,
+  kaget lalu menunjuk ke petunjuk scroll) memakai Web Animations API di `assets/hero.js` (6,5 KB);
+  gerak idle (napas, kedip, jambul bergoyang) memakai CSS. Three.js dan `assets/caput.webp` dihapus.
+- Di layar tegak (tablet/HP) petunjuk scroll naik ke ruang kosong di atas kepala ayam karena sudut
+  kanan bawah dipakai sayap.
+- Verifikasi ulang: paritas 21 observasi tetap 0 perbedaan, tes Node 12/2 sama dengan baseline, hash script
+  aplikasi tetap, Tab/Enter/Space, "Jeda gerak" menghentikan 14 animasi, animasi berhenti saat hero di luar
+  layar, `prefers-reduced-motion` menampilkan ayam diam dengan sayap terangkat, tanpa long task.

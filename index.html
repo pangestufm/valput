@@ -95,84 +95,88 @@
         }
         .skip-link:focus { top: 16px; }
 
-        /* --- HERO SAPAAN --- */
+        /* --- HERO SAPAAN: ayam putih berjambul merah, komposisi dari sketsa Ando ---
+           Judul kiri atas, ayam menyembul dari kiri bawah (terpotong tepi layar),
+           balon kata di atas sayap, petunjuk scroll di kanan bawah. */
         .hero {
-            position: relative; min-height: 100vh; min-height: 100svh;
+            position: relative; min-height: 100vh; min-height: 100svh; overflow: hidden;
             background: var(--hero-bg); color: var(--text-color);
-            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-            align-items: center; gap: 24px;
-            padding: 32px max(32px, calc((100vw - 1450px) / 2 + 32px)) 40px;
-            overflow: hidden;
+            padding: 48px max(32px, calc((100vw - 1450px) / 2 + 32px)) 0;
             transition: var(--transition);
+            --ck-line: #10151c; --ck-white: #ffffff; --ck-shade: #e3e8ef;
+            --ck-comb: #d9342b; --ck-beak: #f4a51c; --ck-beak-low: #e38a12; --ck-cheek: #f7b4ad;
         }
-        .hero-copy { display: flex; flex-direction: column; align-items: flex-start; max-width: 620px; }
+        .hero-copy { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; max-width: 640px; }
         .hero h1 {
-            font-size: clamp(48px, 7.2vw, 112px); line-height: 0.95; letter-spacing: -0.035em;
+            font-size: clamp(44px, 6.6vw, 104px); line-height: 0.95; letter-spacing: -0.035em;
             font-weight: 800; margin: 0;
         }
-        .hero-lead { font-size: clamp(17px, 1.5vw, 21px); line-height: 1.5; margin: 32px 0 0; max-width: 34em; }
-        .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 36px; }
-        .hero-cta {
-            display: inline-flex; align-items: center; gap: 10px; min-height: 48px;
-            padding: 12px 24px; border-radius: 6px; text-decoration: none;
-            background: var(--action-bg); color: var(--action-text); font-weight: 600; font-size: 16px;
-            transition: var(--transition);
-        }
-        .hero-cta:hover { background: var(--action-hover); }
-        .hero-cta:active { transform: translateY(1px) scale(0.98); }
-        .hero-cta svg { width: 18px; height: 18px; }
+        .hero-lead { font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; margin: 24px 0 0; max-width: 32em; }
         .hero-pause {
-            min-height: 44px; padding: 10px 16px; border-radius: 6px;
+            margin-top: 24px; min-height: 44px; padding: 10px 16px; border-radius: 6px;
             background: transparent; color: var(--text-color); border: 1px solid var(--control-border);
             font: 500 14px var(--font); transition: var(--transition);
         }
         .hero-pause:hover { background: var(--secondary-bg); }
+        .hero-pause:active { transform: translateY(1px); }
         .hero.is-still .hero-pause { display: none; }
 
-        .hero-figure { position: relative; height: min(78vh, 760px); min-height: 420px; }
-        .hero-stage { position: absolute; inset: 0; }
-        .hero-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-        .hero-poster {
-            position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%);
-            height: 92%; width: auto; max-width: 100%; object-fit: contain;
-            transition: opacity 0.4s ease;
+        .hero-figure {
+            position: absolute; z-index: 1; bottom: 0; left: max(8px, calc((100vw - 1450px) / 2));
+            width: min(56vw, 64vh * 1.32, 780px);
         }
-        .hero-stage.has-canvas .hero-poster { opacity: 0; pointer-events: none; }
-        .hero-poke {
-            position: absolute; left: 22%; right: 22%; top: 6%; bottom: 4%;
-            background: transparent; border: 0; border-radius: 40px; padding: 0;
-        }
-        .hero-stage canvas { z-index: 0; }
-        .hero-poke { z-index: 1; }
+        .hero-poke { display: block; width: 100%; padding: 0; border: 0; background: transparent; border-radius: 24px 24px 0 0; }
+        .hero-poke:focus-visible { outline-offset: -6px; }
+        .chicken { display: block; width: 100%; height: auto; overflow: hidden; }
+        .chicken * { transform-box: fill-box; }
+        .ck-line { fill: none; stroke: var(--ck-line); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+        .ck-root { transform-origin: 50% 100%; }
+        .ck-breathe { transform-origin: 50% 100%; animation: ck-breathe 3.6s ease-in-out infinite; }
+        .ck-comb { transform-origin: 50% 100%; animation: ck-sway 5.2s ease-in-out infinite; }
+        .ck-eye { transform-origin: 50% 50%; animation: ck-blink 4.4s infinite; }
+        .ck-eye + .ck-eye { animation-delay: 0.04s; }
+        .ck-wing { transform-origin: 2% 82%; transform: rotate(92deg); }
+        .ck-jaw { transform-origin: 50% 0; }
+        .ck-mouth { transform-origin: 50% 0; transform: scaleY(0.15); }
+        .hero.is-still .ck-wing { transform: rotate(0deg); }
+        .hero.is-still .ck-jaw { transform: translateY(8px); }
+        .hero.is-still .ck-mouth { transform: scaleY(1); }
+
         .hero-bubble {
-            position: absolute; top: 9%; left: 6%; max-width: min(300px, 46%);
+            position: absolute; z-index: 2; left: 71%; bottom: 52%; width: max-content; max-width: min(320px, 70vw);
             background: var(--bubble-bg); color: var(--text-color);
-            border: 1px solid var(--border-color); border-radius: 18px 18px 18px 4px;
-            padding: 14px 18px; font-size: 17px; font-weight: 600; line-height: 1.4;
-            margin: 0; z-index: 2;
+            border: 3px solid var(--ck-line); border-radius: 26px 26px 26px 6px;
+            padding: 14px 22px; font-size: 20px; font-weight: 700; line-height: 1.35; margin: 0;
         }
+        [data-theme="dark"] .hero-bubble { border-color: #eef0f3; }
         .hero-bubble.is-new { animation: bubble-pop 0.5s var(--ease-out) both; }
 
         .hero-hint {
-            position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            color: var(--text-color); text-decoration: none; font-size: 15px; font-weight: 600;
-            padding: 8px 14px; border-radius: 6px; text-align: center;
-            transition: opacity 0.5s ease, transform 0.5s var(--ease-out);
+            position: absolute; z-index: 2; right: max(32px, calc((100vw - 1450px) / 2 + 32px)); bottom: 32px;
+            display: flex; align-items: center; gap: 12px; max-width: 260px;
+            color: var(--text-color); text-decoration: none; padding: 8px 12px; border-radius: 6px;
+            transition: opacity 0.5s ease, transform 0.5s var(--ease-out), color 0.3s ease;
         }
-        .hero-hint svg { width: 22px; height: 22px; animation: hint-bob 1.6s ease-in-out infinite; }
-        .hero.is-live:not(.hint-on):not(.is-still) .hero-hint { opacity: 0; transform: translate(-50%, 16px); pointer-events: none; }
+        .hero-hint-text { display: flex; flex-direction: column; text-align: right; }
+        .hero-hint-text b { font-size: clamp(28px, 2.6vw, 40px); line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+        .hero-hint-text span { font-size: 14px; font-weight: 500; margin-top: 6px; }
+        .hero-hint svg { flex: none; width: 28px; height: 28px; animation: hint-bob 1.6s ease-in-out infinite; }
+        .hero.is-live:not(.hint-on):not(.is-still) .hero-hint { opacity: 0; transform: translateY(16px); pointer-events: none; }
         .hero.hint-nudge .hero-hint { animation: hint-nudge 0.9s var(--ease-out) 2; color: var(--primary-color); }
-        .hero.is-paused .hero-hint svg, .hero.is-paused .hero-bubble { animation: none; }
+
+        .hero.is-paused *, .hero.is-offscreen * { animation-play-state: paused !important; }
 
         .hero-copy > * { animation: rise 0.7s var(--ease-out) both; }
         .hero-copy > :nth-child(2) { animation-delay: 0.08s; }
         .hero-copy > :nth-child(3) { animation-delay: 0.16s; }
 
         @keyframes rise { from { opacity: 0; transform: translateY(24px); } }
-        @keyframes bubble-pop { from { opacity: 0; transform: translateY(10px) scale(0.92); transform-origin: 0 100%; } }
+        @keyframes bubble-pop { from { opacity: 0; transform: translateY(10px) scale(0.9); transform-origin: 0 100%; } }
         @keyframes hint-bob { 50% { transform: translateY(5px); } }
-        @keyframes hint-nudge { 30% { transform: translate(-50%, -10px); } 60% { transform: translate(-50%, 2px); } }
+        @keyframes hint-nudge { 30% { transform: translateY(-10px); } 60% { transform: translateY(2px); } }
+        @keyframes ck-breathe { 50% { transform: scaleY(1.012); } }
+        @keyframes ck-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(3deg); } }
+        @keyframes ck-blink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.08); } }
 
         /* --- APLIKASI --- */
         /* Minimal setinggi layar: hero harus bisa hilang penuh dari layar agar sapaan "kembali lagi" terpicu. */
@@ -333,11 +337,24 @@
         }
 
         @media (max-width: 900px) {
-            .hero { grid-template-columns: 1fr; align-content: center; gap: 8px; padding: 24px 16px 96px; }
-            .hero-figure { order: -1; height: 50svh; min-height: 320px; }
-            .hero-bubble { top: 0; left: 0; font-size: 15px; max-width: 72%; padding: 10px 14px; }
-            .hero-lead { margin-top: 20px; }
-            .hero-actions { margin-top: 24px; }
+            /* Layar tegak: ayam selebar layar; sudut kanan bawah dipakai sayap, jadi petunjuk scroll
+               naik ke pita kosong di atas kepala ayam. */
+            .hero { padding: 32px 24px 0; --fig-w: min(100vw, 62svh * 1.32); }
+            .hero-figure { width: var(--fig-w); left: 0; }
+            .hero-bubble { left: auto; right: 4%; max-width: min(300px, 46vw); }
+            .hero-hint { right: 16px; bottom: calc(var(--fig-w) * 0.757 * 0.8 + 16px); }
+        }
+
+        @media (max-width: 600px) {
+            /* HP: ayam diperbesar dan digeser ke kiri sampai sebagian badan keluar layar, seperti di sketsa.
+               Sudut kanan bawah dipakai sayap, jadi petunjuk scroll naik ke pita kosong di atas kepala ayam. */
+            .hero { padding: 32px 16px 0; --fig-w: min(132vw, 58svh * 1.32); }
+            .hero h1 { font-size: min(16vw, 76px); }
+            .hero-figure { width: var(--fig-w); left: -28vw; }
+            .hero-bubble { left: auto; right: 6%; bottom: 52%; font-size: 16px; padding: 10px 16px; border-width: 2.5px; max-width: min(240px, 58vw); }
+            .hero-hint { right: 8px; bottom: calc(var(--fig-w) * 0.757 * 0.8 + 16px); padding: 8px; gap: 8px; max-width: 200px; }
+            .hero-hint-text span { font-size: 13px; }
+            .hero-hint svg { width: 24px; height: 24px; }
         }
 
         @media (max-width: 768px) {
@@ -366,19 +383,37 @@
     <div class="hero-copy">
         <h1>Cepat Cek Caput</h1>
         <p class="hero-lead">Unggah kertas kerja capaian output, lihat RO yang perlu perbaikan, lalu salin pesan untuk satker atau ekspor hasilnya ke Excel.</p>
-        <div class="hero-actions">
-            <a class="hero-cta" href="#aplikasi">Mulai validasi <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
-            <button class="hero-pause" id="caputPause" type="button" aria-pressed="false">Jeda gerak</button>
-        </div>
+        <button class="hero-pause" id="caputPause" type="button" aria-pressed="false">Jeda gerak</button>
     </div>
     <div class="hero-figure">
-        <p class="hero-bubble" id="caputBubble" aria-live="polite">Halo! Saya Caput, pemandu C3.</p>
-        <div class="hero-stage">
-            <img class="hero-poster" src="assets/caput.webp" alt="Caput, maskot C3 berbentuk map dokumen biru dengan lembar kerja bercentang, melambaikan tangan" width="671" height="900" fetchpriority="high">
-            <button class="hero-poke" id="caputPoke" type="button" aria-label="Sapa Caput"></button>
-        </div>
+        <p class="hero-bubble" id="caputBubble" aria-live="polite">Hai</p>
+        <button class="hero-poke" id="caputPoke" type="button" aria-label="Sapa ayam Caput">
+            <svg class="chicken" viewBox="0 0 740 560" aria-hidden="true">
+                <g class="ck-root">
+                    <g class="ck-breathe">
+                        <path class="ck-comb" d="M252 216 C230 178 252 140 282 160 C282 118 326 108 338 150 C358 120 396 138 384 180 C398 194 388 214 366 216 Z" fill="var(--ck-comb)" stroke="var(--ck-line)" stroke-width="7" stroke-linejoin="round"/>
+                        <path d="M64 600 C58 372 150 196 306 192 C462 188 556 352 552 600 Z" fill="var(--ck-white)"/>
+                        <path d="M478 318 C526 392 546 486 548 600 L476 600 C494 500 492 404 478 318 Z" fill="var(--ck-shade)"/>
+                        <path class="ck-line" d="M64 600 C58 372 150 196 306 192 C462 188 556 352 552 600"/>
+                        <ellipse cx="212" cy="374" rx="24" ry="13" fill="var(--ck-cheek)"/>
+                        <ellipse cx="402" cy="374" rx="24" ry="13" fill="var(--ck-cheek)"/>
+                        <g class="ck-eyes">
+                            <g class="ck-eye"><ellipse cx="248" cy="318" rx="15" ry="26" fill="var(--ck-line)"/><circle cx="253" cy="308" r="5" fill="#fff"/></g>
+                            <g class="ck-eye"><ellipse cx="366" cy="318" rx="15" ry="26" fill="var(--ck-line)"/><circle cx="371" cy="308" r="5" fill="#fff"/></g>
+                        </g>
+                        <ellipse class="ck-mouth" cx="307" cy="372" rx="20" ry="13" fill="#7a1f1a"/>
+                        <g class="ck-jaw">
+                            <path d="M284 366 Q307 404 330 366 Q307 374 284 366 Z" fill="var(--ck-beak-low)" stroke="var(--ck-line)" stroke-width="5" stroke-linejoin="round"/>
+                            <path d="M300 388 C292 406 298 430 310 426 C320 420 318 400 314 388 Z" fill="var(--ck-comb)" stroke="var(--ck-line)" stroke-width="5" stroke-linejoin="round"/>
+                        </g>
+                        <path d="M274 364 Q307 334 340 364 Q307 378 274 364 Z" fill="var(--ck-beak)" stroke="var(--ck-line)" stroke-width="5" stroke-linejoin="round"/>
+                    </g>
+                    <path class="ck-wing" d="M538 446 C548 392 600 344 668 338 C708 334 726 360 702 380 C718 386 712 412 684 414 C694 428 676 446 646 442 C610 452 572 456 538 446 Z" fill="var(--ck-white)" stroke="var(--ck-line)" stroke-width="7" stroke-linejoin="round"/>
+                </g>
+            </svg>
+        </button>
     </div>
-    <a class="hero-hint" href="#aplikasi"><span>Scroll ke bawah untuk mulai memakai aplikasi</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>
+    <a class="hero-hint" href="#aplikasi" aria-label="Scroll ke bawah untuk mulai memakai aplikasi"><span class="hero-hint-text"><b>scroll</b><span>ke bawah untuk memakai aplikasi</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v15M6 13l6 6 6-6"/></svg></a>
 </header>
 
 <main class="app-main" id="aplikasi" tabindex="-1">
