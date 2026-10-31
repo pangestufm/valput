@@ -12,7 +12,32 @@ const WING_REST = 92;
 const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 const hero = document.getElementById('sapa');
-if (hero) init();
+if (hero) {
+    startAtLanding();
+    init();
+}
+
+// Setiap kali web dibuka, termasuk muat ulang atau tautan berakhiran #aplikasi, tampilan mulai dari landing page;
+// pengguna sendiri yang scroll ke validator. Tautan #aplikasi di dalam halaman tetap berfungsi seperti biasa.
+function startAtLanding() {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (location.hash === '#aplikasi') history.replaceState(null, '', location.pathname + location.search);
+    let userMoved = false;
+    const markMoved = () => { userMoved = true; };
+    ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(type => window.addEventListener(type, markMoved, { once: true, passive: true }));
+    const toTop = () => {
+        if (userMoved) return;
+        const root = document.documentElement;
+        const behavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        window.scrollTo(0, 0);
+        root.style.scrollBehavior = behavior;
+    };
+    toTop();
+    // Browser bisa melompat ke #aplikasi atau memulihkan posisi lama setelah skrip ini jalan; ulangi saat load
+    // kecuali pengguna sudah mulai menggulir sendiri.
+    window.addEventListener('load', toTop, { once: true });
+}
 
 function init() {
     const q = selector => hero.querySelector(selector);

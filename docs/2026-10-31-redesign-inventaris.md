@@ -75,3 +75,10 @@ Permintaan Ando: tanpa 3D, karakter ayam putih berjambul merah, komposisi mengik
 - Sayap kiri: cermin sayap kanan, ikut di sapaan, kaget, kepak, lompat, dan menguap.
 - Verifikasi: paritas 21 observasi tetap 0 perbedaan, tes Node 12/2, hash script aplikasi tetap, jeda mem-pause 15 animasi,
   tanpa long task, idle 45 detik tanpa pengulangan berturut-turut.
+
+## Tambahan: selalu mulai dari landing page
+
+- `history.scrollRestoration = 'manual'`, hash `#aplikasi` dibuang dari URL saat halaman dibuka, lalu scroll ke atas
+  (diulang saat `load` kecuali pengguna sudah mulai menggulir). Tautan `#aplikasi` di dalam halaman tetap berfungsi.
+- Diuji di desktop dan HP: buka biasa, buka dengan `#aplikasi`, dan reload saat berada di validator semuanya mendarat
+  di landing page (scrollY 0). Versi sebelumnya mendarat di validator saat reload (scrollY 900 di desktop).
