@@ -7,7 +7,7 @@ const XLSX = require('../.qa/xlsx.cjs');
 
 const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
-const message = 'format salah, pastikan file excel diambil dari rekap kertas kerja capaian output';
+const message = 'format salah, pastikan file excel diambil dari detail kertas kerja capaian output';
 
 function app() {
     const elements = new Map();
@@ -214,4 +214,71 @@ test('kode keterangan kosong tidak menggagalkan validasi atau ekspor', () => {
     a.context.renderTable(rows);
     assert.equal(a.get('countValid').innerText, 2);
     assert.equal(a.context.createExportWorkbook(a.call('validationResults'), 'uji.xlsx').Sheets['Hasil Validasi'].R2.v, '');
+});
+
+function correctionRow(overrides = {}) {
+    const row = dataRows()[0];
+    Object.assign(row, { 9: 1000000, 10: 703200, 11: 70.32, 12: 12,
+        14: -2, 16: -20, 17: 10, 18: 83.3, 19: 80, 21: '00' }, overrides);
+    return row;
+}
+
+test('koreksi dari PCRO 100% memberi -16,70% dan alternatif RVRO bersyarat', () => {
+    const a = app();
+    a.context.renderTable([correctionRow()]);
+    const result = a.call('validationResults[0]');
+    assert.equal(result.saranPcro, -16.7);
+    assert.equal(result.rekomendasi.length, 2);
+    assert.match(result.rekomendasi[0], /Opsi 1.*-16\.70%.*83\.30%/);
+    assert.match(result.rekomendasi[1], /Opsi 2.*volume.*terealisasi.*RVRO Bulan ini: 0.*12.*PCRO Bulan ini: 0\.00%.*100\.00%/);
+    assert.match(a.get('recap-list').innerHTML, /Opsi 1.*-16\.70%/s);
+    assert.match(a.get('recap-list').innerHTML, /Opsi 2.*RVRO Bulan ini: 0/s);
+    const sheet = a.context.createExportWorkbook(a.call('validationResults'), 'uji.xlsx').Sheets['Hasil Validasi'];
+    const bytes = XLSX.write({SheetNames:['Hasil Validasi'],Sheets:{'Hasil Validasi':sheet}}, {type:'buffer',bookType:'xlsx'});
+    const restored = XLSX.read(bytes,{type:'buffer',cellNF:true}).Sheets['Hasil Validasi'];
+    assert.ok(Math.abs(restored.U2.v - (-0.167)) < 1e-12);
+    assert.equal(restored.U2.z, '0.00%');
+    assert.match(restored.V2.v, /Opsi 2/);
+});
+
+test('koreksi -42% menjadi -20% dan opsi RVRO +3 tidak disebut pengurangan', () => {
+    const a = app();
+    a.context.renderTable([correctionRow({10:571400,11:57.14,12:7,14:0,16:-42,17:4,18:80,19:58})]);
+    const result = a.call('validationResults[0]');
+    assert.equal(result.saranPcro, -20);
+    assert.match(result.rekomendasi[1], /RVRO Bulan ini: \+3.*7/);
+    assert.doesNotMatch(result.rekomendasi[1], /turunkan|kurangi/i);
+});
+
+test('opsi RVRO negatif dihitung dari volume sebelumnya, bukan dari kumulatif saat ini', () => {
+    const a = app();
+    a.context.renderTable([correctionRow({12:10,14:-5,17:8})]);
+    assert.match(a.call('validationResults[0].rekomendasi[1]'), /RVRO Bulan ini: -3.*10/);
+});
+
+test('koreksi tetap mengikuti %belanja jika lebih tinggi dari TPCRO', () => {
+    const a = app();
+    a.context.renderTable([correctionRow({10:932200,11:93.22})]);
+    const result = a.call('validationResults[0]');
+    assert.equal(result.saranPcro, -6.78);
+    assert.match(result.rekomendasi[0], /93\.22%/);
+});
+
+test('alternatif tidak muncul untuk koreksi biasa, hasil valid, atau RVRO sudah mencapai target', () => {
+    const a = app();
+    a.context.renderTable([correctionRow({16:-10})]);
+    assert.equal(a.call('validationResults[0].saranPcro'), -6.7);
+    assert.equal(a.call('validationResults[0].rekomendasi.length'), 1);
+    a.context.renderTable([correctionRow({16:0,19:100})]);
+    assert.equal(a.call('validationResults[0].status'), 'Valid');
+    a.context.renderTable([correctionRow({17:12})]);
+    assert.equal(a.call('validationResults[0].saranPcro'), 0);
+    assert.equal(a.call('validationResults[0].rekomendasi.length'), 1);
+});
+
+test('RVRO bulanan kosong tidak dijadikan nol untuk mengarang alternatif volume', () => {
+    const a = app();
+    a.context.renderTable([correctionRow({14:null})]);
+    assert.equal(a.call('validationResults[0].saranPcro'), -16.7);
+    assert.equal(a.call('validationResults[0].rekomendasi.length'), 1);
 });

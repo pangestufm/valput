@@ -794,10 +794,24 @@
                         
                         // Hitung Rekomendasi Jika PCRO Bermasalah
                         if (isPcroError) {
-                            let q_seharusnya = Math.max(final_threshold - (T - Q), 0).toFixed(2);
+                            const pcroSebelumnya = Number((T - Q).toFixed(2));
+                            let q_seharusnya = (final_threshold - pcroSebelumnya).toFixed(2);
                             saranPcro = Number(q_seharusnya);
-                            saranList.push(`Isi PCRO min: ${q_seharusnya}%`);
-                            teksRekapSaran.push(`isi PCRO Bulan ini: ${q_seharusnya}%`);
+                            const rvroBulanIni = parseExcelNumber(row[14]);
+                            const koreksiDariSelesai = pcroSebelumnya === 100 && Q < 0 && M > 0 && R < M
+                                && final_threshold <= 100 && Number.isFinite(rvroBulanIni);
+                            if (koreksiDariSelesai) {
+                                const rvroSebelumnya = R - rvroBulanIni;
+                                const saranRvro = Number((M - rvroSebelumnya).toFixed(10));
+                                const isianRvro = saranRvro > 0 ? `+${saranRvro}` : String(saranRvro);
+                                const opsiPcro = `Opsi 1: PCRO Bulan ini: ${q_seharusnya}% (kumulatif ${final_threshold.toFixed(2)}%); RVRO tetap ${R}.`;
+                                const opsiRvro = `Opsi 2 (jika volume sudah terealisasi): RVRO Bulan ini: ${isianRvro} (kumulatif sesuai target ${M}); PCRO Bulan ini: 0.00% (kumulatif 100.00%). Pilih satu opsi.`;
+                                saranList.push(opsiPcro, opsiRvro);
+                                teksRekapSaran.push(`${opsiPcro} ATAU ${opsiRvro}`);
+                            } else {
+                                saranList.push(`Isi PCRO min: ${q_seharusnya}%`);
+                                teksRekapSaran.push(`isi PCRO Bulan ini: ${q_seharusnya}%`);
+                            }
                         }
                         
                         // Hitung Rekomendasi Jika Kode 99 Bermasalah
