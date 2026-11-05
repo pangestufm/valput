@@ -42,18 +42,28 @@ const server=http.createServer((req,res)=>{
                     const a=lum(s.color),b=lum(s.backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
                 });
                 assert.ok(contrast>=4.5,`${theme} contrast ${contrast}`);
-                await page.locator('.container').screenshot({path:path.join(root,`.qa/download-${width}-${theme}.png`)});
+                await page.locator('.extension-picker').evaluate(el=>el.open=false);
+                await page.locator('.container').screenshot({path:path.join(root,`.qa/browser-choice-${width}-${theme}-closed.png`)});
+                await link.press('Enter');assert.equal(await page.locator('.extension-picker').getAttribute('open'),'');
+                await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'kppnChromeDownload');
+                await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'kppnFirefoxDownload');
+                assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${width}/${theme} open overflow`);
+                await page.locator('.container').screenshot({path:path.join(root,`.qa/browser-choice-${width}-${theme}-open.png`)});
+                await link.focus();await link.press('Space');assert.equal(await page.locator('.extension-picker').getAttribute('open'),null);
+                await link.press('Enter');
             }
         }
-        const event=page.waitForEvent('download');await page.locator('#kppnExtensionDownload').click();const download=await event;
-        assert.equal(download.suggestedFilename(),file);assert.equal(await download.failure(),null);
-        assert.equal(hash(fs.readFileSync(await download.path())),expectedHash);
+        for(const [id,name] of [['kppnChromeDownload',file],['kppnFirefoxDownload','C3-Persetujuan-Caput-Firefox-v0.1.3.zip']]){
+            const event=page.waitForEvent('download');await page.locator('#'+id).click();const download=await event;
+            assert.equal(download.suggestedFilename(),name);assert.equal(await download.failure(),null);
+            assert.equal(hash(fs.readFileSync(await download.path())),hash(fs.readFileSync(path.join(root,'downloads',name))));
+        }
         await page.locator('#excelFileInput').setInputFiles(path.join(root,'.qa/kertas-kerja-uji.xlsx'));
         await page.locator('#processButton').click();await page.waitForFunction(()=>document.getElementById('countTotal').textContent==='2');
         const exportEvent=page.waitForEvent('download');await page.locator('#exportButton').click();const exported=await exportEvent;assert.equal(await exported.failure(),null);
         await page.locator('#excelFileInput').setInputFiles(path.join(root,'.qa/format-salah.xlsx'));await page.locator('#processButton').click();
         await page.waitForFunction(()=>document.getElementById('uploadNotification').textContent.includes('format salah'));
         assert.deepEqual(errors,[]);
-        console.log('PASS: layout hero/header/upload identik; 390/768/1440 light/dark tanpa overflow; fokus dan kontras tombol; ZIP hash cocok; upload-validasi-export dan notif format salah; tanpa pageerror.');
+        console.log('PASS: layout hero/header/upload identik; 390/768/1440 light/dark, disclosure closed/open tanpa overflow; Enter/Space/Tab dan kontras; kedua ZIP hash cocok; upload-validasi-export dan notif format salah; tanpa pageerror.');
     }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

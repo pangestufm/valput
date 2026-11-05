@@ -1,5 +1,16 @@
 # Download ekstensi KPPN, QA lokal 5 November 2026
 
+## Dua pilihan browser, pembaruan Firefox
+
+- PASS RED/GREEN: tes disclosure dan paket Firefox gagal sebelum implementasi, lalu seluruh 23 tes website lulus. Engine/adapter ekstensi lokal lulus 40 tes, termasuk port mati, owner baru, pesan tanpa port dan frame lain.
+- PASS native Firefox 154.0.1 pada profil anonim terisolasi: instalasi temporary add-on, popup, Cek tanpa kirim (dua X, nol kiriman), dua persetujuan fixture sintetis, dan pemulihan tabel hilang dengan URL sama. Refresh pertama masih form filter, refresh kedua pulih; owner port berubah dan tepat dua kiriman total. Tidak mengakses sesi/akun produksi.
+- PASS: paket Firefox berisi 13 file whitelist dan engine yang sama dengan Chrome. Event-page manifest, tiga adapter Firefox, popup loader dan README khusus; tidak menyertakan fixture/profil/riwayat. Paket Chrome tidak berubah: SHA256 8c45121f328a27d4b8a60d1853735823527f7d414a474db047cf3f4094ad218a.
+- PASS browser chooser: 390/768/1440 px, terang/gelap, tertutup/terbuka, tanpa overflow; hero/header/unggah dibandingkan baseline tetap. Enter/Space membuka-menutup, Tab mencapai Chrome lalu Firefox, kedua unduhan native selesai dan hash cocok. Upload-validasi-export-notifikasi format salah masih lulus, tanpa pageerror.
+- PASS: screenshot browser-choice-390-light-open.png dan browser-choice-1440-dark-open.png dilihat langsung. Pilihan bertumpuk di ponsel dan dua kolom di desktop, tidak tampil sebelum tombol dibuka.
+- Batas distribusi: Firefox ZIP belum ditandatangani Mozilla; temporary add-on perlu dimuat ulang sesudah browser ditutup. Label sebelum unduh dan README menyebutkan batas ini. Pemasangan permanen/AMO dan persetujuan MyIntress produksi NOT RUN. Tidak mematikan signature di profil pengguna.
+
+## Catatan versi satu tombol sebelumnya
+
 - PASS, RED/GREEN: dua tes download gagal sebelum perubahan dan lulus sesudah tombol/ZIP ditambahkan. Seluruh 22 tes Node lulus.
 - PASS: hash paket website sama dengan ZIP v0.1.3 yang telah diserahkan, SHA256 8c45121f328a27d4b8a60d1853735823527f7d414a474db047cf3f4094ad218a. ZIP berisi tepat sepuluh file runtime/README; manifest membatasi host MyIntress dan izin storage/activeTab.
 - PASS: browser Chrome terisolasi pada 390/768/1440 px, tema terang dan gelap, tidak overflow. Ukuran/posisi horizontal hero, header dan unggah dibandingkan dengan commit 309b884, selisih di bawah satu piksel. Inline JavaScript validator identik setelah normalisasi CRLF.
