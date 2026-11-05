@@ -8,6 +8,7 @@
 - PASS browser chooser: 390/768/1440 px, terang/gelap, tertutup/terbuka, tanpa overflow; hero/header/unggah dibandingkan baseline tetap. Enter/Space membuka-menutup, Tab mencapai Chrome lalu Firefox, kedua unduhan native selesai dan hash cocok. Upload-validasi-export-notifikasi format salah masih lulus, tanpa pageerror.
 - PASS: screenshot browser-choice-390-light-open.png dan browser-choice-1440-dark-open.png dilihat langsung. Pilihan bertumpuk di ponsel dan dua kolom di desktop, tidak tampil sebelum tombol dibuka.
 - Batas distribusi: Firefox ZIP belum ditandatangani Mozilla; temporary add-on perlu dimuat ulang sesudah browser ditutup. Label sebelum unduh dan README menyebutkan batas ini. Pemasangan permanen/AMO dan persetujuan MyIntress produksi NOT RUN. Tidak mematikan signature di profil pengguna.
+- PASS live setelah push 70c6748: disclosure tertutup saat mulai, dibuka lewat tombol footer, kedua unduhan native selesai dengan nama yang benar dan hash cocok. SHA256 Firefox: 9a239d83773adf17b776d12e63eea587fcdbafcf38f122216d2b76a48a642d52. HTML aplikasi cocok dengan sumber; hanya tambahan RUM Netlify seperti sebelumnya. Tidak ada pageerror. Screenshot .qa/live-browser-choice.png dilihat langsung.
 
 ## Catatan versi satu tombol sebelumnya
 
