@@ -8,4 +8,8 @@
 - PASS: screenshot .qa/download-390-light.png dan .qa/download-1440-dark.png dilihat langsung. Tombol sekunder menyatu dengan footer dan tidak menyaingi Validasi Sekarang. Screenshot lokal diabaikan Git.
 - Batas uji: CDN SheetJS disajikan dari salinan lokal dan analytics dinonaktifkan pada harness QA. Tidak menguji persetujuan MyIntress. Firefox tidak diuji dan tidak diklaim didukung.
 
-Publikasi GitHub/Netlify diverifikasi terpisah sesudah push, bukan dibuktikan oleh tes lokal ini.
+## Verifikasi setelah push
+
+- PASS: commit fitur 5992e8c dipush ke origin/main pada https://github.com/pangestufm/valput.
+- PASS: https://caput079.netlify.app menampilkan tepat satu tombol unduh. HTML aplikasi cocok dengan sumber, diikuti script RUM yang ditambahkan Netlify; script tambahan itu tidak diubah/dihapus.
+- PASS: unduhan native browser dari website live selesai dengan nama C3-Persetujuan-Caput-v0.1.3.zip dan SHA256 identik di atas. Tidak ada pageerror pada pemeriksaan live. Screenshot .qa/live-extension-download.png dilihat langsung.
