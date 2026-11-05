@@ -47,6 +47,11 @@ const server=http.createServer((req,res)=>{
                 await link.press('Enter');assert.equal(await page.locator('.extension-picker').getAttribute('open'),'');
                 await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'kppnChromeDownload');
                 await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'kppnFirefoxDownload');
+                const help=page.locator('.firefox-help');assert.equal(await help.getAttribute('open'),null);
+                await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.textContent.trim()),'Cara pasang Firefox');
+                await page.keyboard.press('Enter');assert.equal(await help.getAttribute('open'),'');
+                assert.equal(await page.locator('#firefoxInstallNote ol').isVisible(),true);
+                await page.keyboard.press('Enter');assert.equal(await help.getAttribute('open'),null);
                 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${width}/${theme} open overflow`);
                 await page.locator('.container').screenshot({path:path.join(root,`.qa/browser-choice-${width}-${theme}-open.png`)});
                 await link.focus();await link.press('Space');assert.equal(await page.locator('.extension-picker').getAttribute('open'),null);

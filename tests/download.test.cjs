@@ -33,3 +33,13 @@ test('paket Firefox adalah ZIP terpisah, bukan salinan paket Chrome',()=>{
     assert.equal(data.readUInt32LE(0),0x04034b50);assert.ok(data.length>10000&&data.length<100000);
     assert.notDeepEqual(data,fs.readFileSync(path.join(root,'downloads',file)));
 });
+
+test('pilihan browser rapi dengan metadata setara dan petunjuk Firefox dilipat tanpa menyembunyikan batasan',()=>{
+    assert.equal([...html.matchAll(/class="browser-details"/g)].length,2);
+    assert.equal([...html.matchAll(/<small>ZIP · v0\.1\.3<\/small>/g)].length,2);
+    assert.match(html,/id="firefoxCompatibilityNote"[^>]*>[^<]*sementara[^<]*ditutup/i);
+    const help=html.match(/<details class="firefox-help">([\s\S]*?)<\/details>/)?.[0];
+    assert.ok(help);assert.match(help,/<summary>Cara pasang Firefox<\/summary>/);
+    assert.match(help,/<ol[\s>]/);assert.match(help,/Belum ditandatangani Mozilla/);
+    assert.match(html,/id="kppnFirefoxDownload"[^>]*aria-describedby="firefoxCompatibilityNote"/);
+});

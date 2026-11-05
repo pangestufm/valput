@@ -1,5 +1,12 @@
 # Download ekstensi KPPN, QA lokal 5 November 2026
 
+## Polish pilihan browser
+
+- PASS RED/GREEN: tes metadata seragam, batasan Firefox tetap terlihat dan instruksi terlipat gagal sebelum perubahan, kemudian seluruh 24 tes website lulus.
+- PASS: kartu sejajar memakai ikon browser, label/versi seragam dan ikon unduh; petunjuk panjang menjadi daftar langkah dalam disclosure Cara pasang Firefox. Peringatan pemasangan sementara tetap terlihat sebelum unduh.
+- PASS: 390/768/1440 px terang/gelap, chooser tertutup/terbuka, tanpa overflow; Enter/Space/Tab untuk chooser dan bantuan, kedua hash ZIP, unggah-validasi-ekspor-notifikasi format salah, tanpa pageerror. Hero/header/unggah dan inline engine tetap identik baseline.
+- PASS: screenshot mobile terang dan desktop gelap dilihat langsung. Paket ekstensi tidak diubah.
+
 ## Dua pilihan browser, pembaruan Firefox
 
 - PASS RED/GREEN: tes disclosure dan paket Firefox gagal sebelum implementasi, lalu seluruh 23 tes website lulus. Engine/adapter ekstensi lokal lulus 40 tes, termasuk port mati, owner baru, pesan tanpa port dan frame lain.

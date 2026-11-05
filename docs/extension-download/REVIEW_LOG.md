@@ -1,5 +1,9 @@
 # Review perubahan download
 
+## Polish setelah screenshot pengguna
+
+Temuan: metadata Chrome/Firefox tidak seimbang dan paragraf pemasangan terlalu mendominasi pilihan unduh. Perbaikan hanya pada footer: ikon dan metadata sejajar, area klik sama tinggi, status sementara tetap terlihat singkat, langkah rinci berada di disclosure keyboard-accessible. Tidak mengubah mesin validator atau isi ZIP. Bukti: 24 tes dan browser responsif dua tema; screenshot telah diperiksa.
+
 ## Pilihan browser dan port Firefox
 
 P0 yang dicegah: sender.documentId tidak tersedia pada Firefox lama, sehingga owner tidak boleh diam-diam undefined. Adapter hanya menerima token dari port runtime yang hidup dan cocok dengan extension ID/tab/frame. Token dicabut pada disconnect; claim dokumen baru serta pemeriksaan revisi mencegah dokumen lama menyimpan. Engine persetujuan tetap sama dan proteksi tidak dihapus.

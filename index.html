@@ -341,18 +341,30 @@
             font-size: 14px;
             font-weight: 500;
         }
-        .extension-download { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px; }
+        .extension-download { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 28px; }
         .extension-download .extension-download-link { align-self: center; max-width: 100%; justify-content: center; text-align: center; text-decoration: none; }
         .extension-download-note { margin: 0; font-size: 12px; line-height: 1.6; }
-        .extension-picker { width: 520px; max-width: 100%; }
+        .extension-picker { width: 560px; max-width: 100%; }
         .extension-picker summary { list-style: none; margin-inline: auto; width: fit-content; }
         .extension-picker summary::-webkit-details-marker { display: none; }
         .extension-picker[open] summary .fa-chevron-down { transform: rotate(180deg); }
-        .extension-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-        .browser-download { display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 12px 14px; min-height: 68px; border: 1px solid var(--control-border); border-radius: 6px; color: var(--text-color); text-align: left; text-decoration: none; }
+        .extension-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+        .browser-download { display: flex; align-items: center; gap: 12px; padding: 16px; min-height: 84px; border: 1px solid var(--control-border); border-radius: 6px; background: var(--raised-bg); color: var(--text-color); text-align: left; text-decoration: none; }
         .browser-download:hover { background: var(--secondary-bg); }
+        .browser-logo { flex: none; width: 26px; font-size: 24px; text-align: center; color: var(--text-muted); }
+        .browser-details { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 4px; }
+        .browser-details > span { font-weight: 600; }
+        .browser-download > .fa-download { color: var(--primary-color); font-size: 14px; }
         .browser-download small { font-size: 12px; color: var(--text-muted); }
-        .firefox-install-note { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.6; text-align: left; }
+        .firefox-support { grid-column: 1 / -1; padding: 2px 2px 0; text-align: left; font-size: 12px; line-height: 1.6; }
+        .firefox-support > p { margin: 0 0 8px; }
+        .firefox-help > summary { display: flex; align-items: center; gap: 8px; width: fit-content; margin: 0; padding: 8px 0; min-height: 44px; color: var(--primary-color); font-size: 12px; }
+        .firefox-help > summary::after { content: '+'; font-size: 16px; }
+        .firefox-help[open] > summary::after { content: '−'; }
+        .firefox-install-note { margin-top: 4px; padding: 12px 16px; background: var(--raised-bg); border-radius: 6px; }
+        .firefox-install-note ol { margin: 0; padding-left: 18px; }
+        .firefox-install-note li + li { margin-top: 6px; }
+        .firefox-install-note p { margin: 10px 0 0; }
 
         @media (max-width: 900px) {
             /* Layar tegak: ayam selebar layar; sudut kanan bawah dipakai sayap, jadi petunjuk scroll
@@ -505,12 +517,21 @@
             <details class="extension-picker">
                 <summary class="theme-toggle extension-download-link" id="kppnExtensionDownload" aria-describedby="extensionDownloadNote"><i class="fas fa-download" aria-hidden="true"></i> <span>Khusus KPPN - Validator Caput</span> <i class="fas fa-chevron-down" aria-hidden="true"></i></summary>
                 <div class="extension-choices">
-                    <a class="browser-download" id="kppnChromeDownload" href="downloads/C3-Persetujuan-Caput-v0.1.3.zip" download="C3-Persetujuan-Caput-v0.1.3.zip" type="application/zip"><span>Chrome / Edge</span><small>ZIP v0.1.3</small></a>
-                    <a class="browser-download" id="kppnFirefoxDownload" href="downloads/C3-Persetujuan-Caput-Firefox-v0.1.3.zip" download="C3-Persetujuan-Caput-Firefox-v0.1.3.zip" type="application/zip" aria-describedby="firefoxInstallNote"><span>Mozilla Firefox</span><small>ZIP v0.1.3 · pemasangan sementara</small></a>
-                    <p class="firefox-install-note" id="firefoxInstallNote">Firefox: ekstrak ZIP, buka <code>about:debugging</code>, lalu Load Temporary Add-on dan pilih manifest.json. Muat lagi setelah browser ditutup. Belum ditandatangani Mozilla untuk pemasangan permanen.</p>
+                    <a class="browser-download" id="kppnChromeDownload" href="downloads/C3-Persetujuan-Caput-v0.1.3.zip" download="C3-Persetujuan-Caput-v0.1.3.zip" type="application/zip"><i class="fa-brands fa-chrome browser-logo" aria-hidden="true"></i><span class="browser-details"><span>Chrome / Edge</span><small>ZIP · v0.1.3</small></span><i class="fas fa-download" aria-hidden="true"></i></a>
+                    <a class="browser-download" id="kppnFirefoxDownload" href="downloads/C3-Persetujuan-Caput-Firefox-v0.1.3.zip" download="C3-Persetujuan-Caput-Firefox-v0.1.3.zip" type="application/zip" aria-describedby="firefoxCompatibilityNote"><i class="fa-brands fa-firefox-browser browser-logo" aria-hidden="true"></i><span class="browser-details"><span>Mozilla Firefox</span><small>ZIP · v0.1.3</small></span><i class="fas fa-download" aria-hidden="true"></i></a>
+                    <div class="firefox-support">
+                        <p id="firefoxCompatibilityNote">Firefox dipasang sementara dan perlu dimuat lagi setelah browser ditutup.</p>
+                        <details class="firefox-help">
+                            <summary>Cara pasang Firefox</summary>
+                            <div class="firefox-install-note" id="firefoxInstallNote">
+                                <ol><li>Ekstrak ZIP, lalu buka <code>about:debugging</code>.</li><li>Pilih <b>This Firefox</b> → <b>Load Temporary Add-on</b>.</li><li>Pilih <code>manifest.json</code> dari folder hasil ekstrak.</li></ol>
+                                <p>Belum ditandatangani Mozilla untuk pemasangan permanen.</p>
+                            </div>
+                        </details>
+                    </div>
                 </div>
             </details>
-            <p class="extension-download-note" id="extensionDownloadNote">Pilih versi browser. Panduan pemasangan ada di dalam ZIP.</p>
+            <p class="extension-download-note" id="extensionDownloadNote">Panduan lengkap tersedia di dalam ZIP.</p>
         </div>
         Powered by <span style="color: var(--primary-color); font-weight: 700;">KPPN Sintang</span>
     </footer>
