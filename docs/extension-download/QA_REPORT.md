@@ -1,5 +1,13 @@
 # Download ekstensi KPPN, QA lokal 5 November 2026
 
+## Versi 0.1.4, mode Konfirmasi (6 November 2026)
+
+- DOM asli dibaca tanpa mengisi/mengirim: dialog Tambah Catatan, Status Terkonfirmasi, pilihan tepat terkonfirmasi/tidak terkonfirmasi, textarea Catatan wajib. Tidak ada konfirmasi produksi dijalankan.
+- 46 tes ekstensi lulus. Mode terkunci pada antrean, SAVE tidak bisa mengubah mode, checkbox direset saat memilih mode lain, dan antrean lama tanpa mode tetap Validasi.
+- Smoke native Edge MV3 dan Firefox 154.0.1 lulus: dua konfirmasi sintetis dengan catatan sesuai, Cek tanpa kirim nol pengiriman, dan mode tetap Konfirmasi melalui dua reload saat URL tetap/tabel hilang. Tidak menjalankan Action Validasi di mode Konfirmasi.
+- Website hanya memperbarui URL dan versi dua ZIP menjadi v0.1.4. Layout pilihan browser dan engine Excel tidak diubah; 24 tes website lulus. Paket lama tetap tersedia untuk backup.
+- Firefox tetap temporary unsigned seperti versi sebelumnya. Pengujian memakai profil terisolasi dan intersepsi seluruh request MyIntress menjadi fixture; bukan akun produksi.
+
 ## Polish pilihan browser
 
 - PASS RED/GREEN: tes metadata seragam, batasan Firefox tetap terlihat dan instruksi terlipat gagal sebelum perubahan, kemudian seluruh 24 tes website lulus.

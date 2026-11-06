@@ -1,5 +1,9 @@
 # Review perubahan download
 
+## Konfirmasi 0.1.4
+
+Review: mode Konfirmasi memakai kolom Terkonfirmasi dan Action Konfirmasi, bukan status/tombol Validasi. Dialog asli Tambah Catatan diverifikasi lewat identitas satker/periode/program/kegiatan/RO. Sebelum Kirim pilihan harus tepat terkonfirmasi dan Catatan harus tepat sesuai; perubahan pada guard terakhir memblokir pengiriman. Dua status workflow dan Catatan dikecualikan dari fingerprint Konfirmasi karena berubah sebagai hasil operasi, tetapi data output/keuangan tetap dijaga. Fingerprint Validasi lama dipertahankan. Mode tersimpan bersama owner/revisi dan tidak bisa berubah lewat SAVE. Tidak ada perubahan izin host.
+
 ## Polish setelah screenshot pengguna
 
 Temuan: metadata Chrome/Firefox tidak seimbang dan paragraf pemasangan terlalu mendominasi pilihan unduh. Perbaikan hanya pada footer: ikon dan metadata sejajar, area klik sama tinggi, status sementara tetap terlihat singkat, langkah rinci berada di disclosure keyboard-accessible. Tidak mengubah mesin validator atau isi ZIP. Bukti: 24 tes dan browser responsif dua tema; screenshot telah diperiksa.

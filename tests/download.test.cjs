@@ -5,7 +5,7 @@ const path=require('node:path');
 
 const root=path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const file='C3-Persetujuan-Caput-v0.1.3.zip';
+const file='C3-Persetujuan-Caput-v0.1.4.zip';
 
 test('satu tombol footer membuka dua pilihan unduhan native Chrome dan Firefox',()=>{
     const summaries=[...html.matchAll(/<summary\b[^>]*id="kppnExtensionDownload"[^>]*>[\s\S]*?<\/summary>/g)];
@@ -14,7 +14,7 @@ test('satu tombol footer membuka dua pilihan unduhan native Chrome dan Firefox',
     assert.match(summaries[0][0],/aria-describedby="extensionDownloadNote"/);
     const picker=html.match(/<details\b[^>]*class="extension-picker"[^>]*>([\s\S]*?)<\/details>/)?.[0];
     assert.ok(picker);assert.equal(/<details[^>]*\bopen\b/.test(picker),false);
-    for(const [id,name] of [['kppnChromeDownload',file],['kppnFirefoxDownload','C3-Persetujuan-Caput-Firefox-v0.1.3.zip']]){
+    for(const [id,name] of [['kppnChromeDownload',file],['kppnFirefoxDownload','C3-Persetujuan-Caput-Firefox-v0.1.4.zip']]){
         const anchor=picker.match(new RegExp(`<a\\b[^>]*id="${id}"[^>]*>[\\s\\S]*?<\\/a>`))?.[0];
         assert.ok(anchor);assert.ok(anchor.includes(`href="downloads/${name}"`));assert.ok(anchor.includes(`download="${name}"`));
     }
@@ -29,14 +29,14 @@ test('target unduhan adalah ZIP nyata dengan ukuran wajar, bukan halaman fallbac
 });
 
 test('paket Firefox adalah ZIP terpisah, bukan salinan paket Chrome',()=>{
-    const data=fs.readFileSync(path.join(root,'downloads','C3-Persetujuan-Caput-Firefox-v0.1.3.zip'));
+    const data=fs.readFileSync(path.join(root,'downloads','C3-Persetujuan-Caput-Firefox-v0.1.4.zip'));
     assert.equal(data.readUInt32LE(0),0x04034b50);assert.ok(data.length>10000&&data.length<100000);
     assert.notDeepEqual(data,fs.readFileSync(path.join(root,'downloads',file)));
 });
 
 test('pilihan browser rapi dengan metadata setara dan petunjuk Firefox dilipat tanpa menyembunyikan batasan',()=>{
     assert.equal([...html.matchAll(/class="browser-details"/g)].length,2);
-    assert.equal([...html.matchAll(/<small>ZIP · v0\.1\.3<\/small>/g)].length,2);
+    assert.equal([...html.matchAll(/<small>ZIP · v0\.1\.4<\/small>/g)].length,2);
     assert.match(html,/id="firefoxCompatibilityNote"[^>]*>[^<]*sementara[^<]*ditutup/i);
     const help=html.match(/<details class="firefox-help">([\s\S]*?)<\/details>/)?.[0];
     assert.ok(help);assert.match(help,/<summary>Cara pasang Firefox<\/summary>/);

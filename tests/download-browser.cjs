@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
 const {chromium}=require('C:/Users/Ando/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const root=path.resolve(__dirname,'..'),file='C3-Persetujuan-Caput-v0.1.3.zip';
+const root=path.resolve(__dirname,'..'),file='C3-Persetujuan-Caput-v0.1.4.zip';
 const baseline=execFileSync('git',['show','309b884:index.html'],{cwd:root,encoding:'utf8'});
 const current=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const inline=html=>[...html.replace(/\r\n/g,'\n').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
@@ -58,7 +58,7 @@ const server=http.createServer((req,res)=>{
                 await link.press('Enter');
             }
         }
-        for(const [id,name] of [['kppnChromeDownload',file],['kppnFirefoxDownload','C3-Persetujuan-Caput-Firefox-v0.1.3.zip']]){
+        for(const [id,name] of [['kppnChromeDownload',file],['kppnFirefoxDownload','C3-Persetujuan-Caput-Firefox-v0.1.4.zip']]){
             const event=page.waitForEvent('download');await page.locator('#'+id).click();const download=await event;
             assert.equal(download.suggestedFilename(),name);assert.equal(await download.failure(),null);
             assert.equal(hash(fs.readFileSync(await download.path())),hash(fs.readFileSync(path.join(root,'downloads',name))));
