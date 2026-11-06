@@ -7,6 +7,7 @@
 - Smoke native Edge MV3 dan Firefox 154.0.1 lulus: dua konfirmasi sintetis dengan catatan sesuai, Cek tanpa kirim nol pengiriman, dan mode tetap Konfirmasi melalui dua reload saat URL tetap/tabel hilang. Tidak menjalankan Action Validasi di mode Konfirmasi.
 - Website hanya memperbarui URL dan versi dua ZIP menjadi v0.1.4. Layout pilihan browser dan engine Excel tidak diubah; 24 tes website lulus. Paket lama tetap tersedia untuk backup.
 - Firefox tetap temporary unsigned seperti versi sebelumnya. Pengujian memakai profil terisolasi dan intersepsi seluruh request MyIntress menjadi fixture; bukan akun produksi.
+- PASS setelah push 0e3b7c1: kedua unduhan v0.1.4 di Netlify berhasil melalui tombol browser dan hash identik dengan lokal. Chrome SHA256 ac9d92a5fa37f4d74749690a78730b0876630b83e0261c4ad09a159b36c078da; Firefox dff26e46f39eb5b8931a313eeacb868e2914ba6380078efd45985107fbcb9bef. HTML aplikasi cocok dengan sumber dan tidak ada pageerror. Folder Chrome terpasang diperbarui, sepuluh hash sesuai sumber dan UI Extensions membuktikan versi 0.1.4 setelah Reload. Dialog MyIntress pengguna tidak ditutup/diubah.
 
 ## Polish pilihan browser
 
